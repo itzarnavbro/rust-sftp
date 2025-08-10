@@ -1,0 +1,9 @@
+[package]
+name = "sftp-cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+sftp-core = { path = "../sftp-core" }
+sftp-auth = { path = "../sftp-auth" }
+sftp-transfer = { path = "../sftp-transfer" }

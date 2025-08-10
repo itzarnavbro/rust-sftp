@@ -1,0 +1,9 @@
+[package]
+name = "sftp-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = "1.47.1"
+# thrussh = "0.37.0"         # Temporarily disabled due to libsodium-sys on Windows/MSVC
+# thrussh-keys = "0.23.1"     # Will re-enable once sodium is configured or alternative backend chosen

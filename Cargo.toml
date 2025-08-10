@@ -1,9 +1,9 @@
-[package]
-name = "rust-sftp"
-version = "0.1.0"
-edition = "2024"
+[workspace]
+members = [
+	"sftp-core",
+	"sftp-auth",
+	"sftp-transfer",
+	"sftp-cli",
+]
+resolver = "3"
 
-[dependencies]
-thrussh = "0.37.0"
-thrussh-keys = "0.23.1"
-tokio = "1.47.1"
