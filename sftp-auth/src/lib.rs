@@ -1,6 +1,8 @@
 // Authentication-specific logic building on sftp-core
 
-pub fn hello_auth() -> &'static str {
-    sftp_core::hello_core();
-    "hello from sftp-auth"
-}
+use sshkeys::PublicKey;
+use std::collections::HashMap;
+use serde::{Serialize, Deserialize};
+use thiserror::Error;
+
+#[derive(Debug, Error)]
