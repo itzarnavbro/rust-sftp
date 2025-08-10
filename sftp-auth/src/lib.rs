@@ -1,5 +1,6 @@
 // Authentication-specific logic building on sftp-core
-
+use std::fs;
+use std::path::Path;
 use sshkeys::PublicKey;
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
