@@ -1,0 +1,9 @@
+[package]
+name = "rust-sftp"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+thrussh = "0.37.0"
+thrussh-keys = "0.23.1"
+tokio = "1.47.1"
