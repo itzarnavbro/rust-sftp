@@ -1,5 +1,11 @@
+//! Transfer feature crate.
+//! Provides `run` to execute the feature and `register` to register it with core.
+
 use sftp_core::{register_feature, CoreError};
 
+/// Execute the `transfer` feature.
+///
+/// Returns `InvalidArgs` if no arguments are provided.
 pub fn run(args: &[String]) -> Result<(), CoreError> {
 	if args.is_empty() {
 		return Err(CoreError::InvalidArgs("transfer requires at least one argument".into()));
@@ -7,6 +13,7 @@ pub fn run(args: &[String]) -> Result<(), CoreError> {
 	Ok(())
 }
 
+/// Thin adapter used by the registry to call `run`.
 fn handler(args: &[String]) -> Result<(), CoreError> {
 	run(args)
 }

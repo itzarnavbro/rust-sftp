@@ -1,7 +1,9 @@
+//! sftp-cli: binary crate that registers features and dispatches commands.
 use std::env;
 
 use sftp_core::{list_features, process_input, CoreError};
 
+/// Entry point: registers features, handles flags and dispatches to core.
 fn main() {
 	// Register features at startup
 	sftp_auth::register();
@@ -64,6 +66,7 @@ fn main() {
 
 // Private helpers
 
+/// Parse CLI arguments into `(feature, args)` ignoring known flags.
 fn parse_args() -> (String, Vec<String>) {
 	let mut args = Vec::new();
 	for a in env::args().skip(1) {
@@ -82,6 +85,7 @@ fn parse_args() -> (String, Vec<String>) {
 	(feature, args)
 }
 
+/// Print CLI usage, available features and examples.
 fn print_help() {
 	let features = list_features();
 	println!(
@@ -96,6 +100,7 @@ fn print_help() {
 	);
 }
 
+/// Print a formatted error and a hint to use `--help`.
 fn print_error(err: &CoreError) {
 	eprintln!("Error: {}", err);
 	eprintln!("Run with --help to see usage.");

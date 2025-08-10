@@ -1,14 +1,23 @@
+//! Core crate: feature registry, command parsing, and dispatch.
+//!
+//! Feature crates call `register_feature` at startup to register their handler
+//! functions, and the CLI calls `process_input` to parse and dispatch commands.
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::sync::{Mutex, OnceLock};
 
-// Public types
+/// Result type returned by `process_input`.
+///
+/// - `message`: human-friendly message suitable for CLI output
+/// - `code`: process exit code (0 for success, non-zero for error)
 #[derive(Debug, Clone)]
 pub struct Output {
     pub message: String,
     pub code: i32,
 }
 
+/// Unified error type for the core to keep error handling consistent across
+/// feature crates and the CLI.
 #[derive(Debug, Clone)]
 pub enum CoreError {
     UnknownFeature(String),
@@ -33,6 +42,7 @@ type FeatureFn = fn(&[String]) -> Result<(), CoreError>;
 
 static REGISTRY: OnceLock<Mutex<HashMap<String, FeatureFn>>> = OnceLock::new();
 
+/// Internal accessor for the global feature registry.
 fn registry() -> &'static Mutex<HashMap<String, FeatureFn>> {
     REGISTRY.get_or_init(|| Mutex::new(HashMap::new()))
 }
