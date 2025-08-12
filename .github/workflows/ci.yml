@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-artifacts:
+    name: Build and package (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build CLI (release)
+        run: cargo build --release -p sftp-cli
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $dist = "dist/sftp-cli-windows-x86_64"
+          New-Item -ItemType Directory -Force -Path $dist | Out-Null
+          Copy-Item target/release/sftp-cli.exe "$dist/"
+          if (Test-Path README.md) { Copy-Item README.md "$dist/" }
+          Compress-Archive -Path "$dist/*" -DestinationPath "dist/sftp-cli-windows-x86_64.zip" -Force
+      - name: Package (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p dist/sftp-cli-macos-universal
+          cp target/release/sftp-cli dist/sftp-cli-macos-universal/
+          [ -f README.md ] && cp README.md dist/sftp-cli-macos-universal/
+          cd dist && zip -r sftp-cli-macos-universal.zip sftp-cli-macos-universal
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os == 'Windows' && 'sftp-cli-windows-x86_64' || 'sftp-cli-macos-universal' }}
+          path: |
+            dist/*.zip
+
+  verify-ubuntu:
+    name: Verify build and tests (Ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build (workspace)
+        run: cargo build --release --workspace
+      - name: Run tests
+        run: cargo test --workspace --all-features -- --nocapture
