@@ -22,6 +22,7 @@ pub enum AuthError {
     Parse(String),
 }
 
+#[allow(non_snake_case)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
     Username: String,
@@ -35,6 +36,7 @@ pub enum AuthMethod {
 }
 
 pub struct AuthManager {
+    #[allow(dead_code)]
     users: HashMap<String,PublicKey>
 }
 

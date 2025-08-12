@@ -1,7 +1,7 @@
 //! sftp-cli: binary crate that dispatches commands to feature crates.
 use std::env;
 
-use sftp_core::{list_features, CoreError};
+use sftp_core::list_features;
 use std::path::Path;
 
 /// Entry point: handles flags and dispatches to feature crates.
