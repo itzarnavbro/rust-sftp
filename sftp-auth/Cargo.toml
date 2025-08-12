@@ -5,8 +5,3 @@ edition = "2024"
 
 [dependencies]
 sftp-core = { path = "../sftp-core" }
-sshkeys = "0.3"        # Parse and validate OpenSSH-format public keys
-ring = "0.17"          # Cryptography primitives for signature verification
-serde = { version = "1.0", features = ["derive"] } # Serialize/deserialize user data
-serde_json = "1.0"     # Store and read user key data in JSON
-thiserror = "1.0"      # Custom, easy-to-read error handling
