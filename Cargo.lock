@@ -303,6 +303,7 @@ name = "sftp-transfer"
 version = "0.1.0"
 dependencies = [
  "sftp-core",
+ "thiserror",
 ]
 
 [[package]]

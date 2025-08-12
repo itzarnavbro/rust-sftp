@@ -1,12 +1,16 @@
 // Transfer-specific logic building on sftp-core
 
-use std::{fmt, io, path::PathBuf};
+use std::{io, path::PathBuf};
 use thiserror::Error;
 use std::{fs, io::{Read, Write}, path::Path};
 
+#[derive(Debug, Error)]
 pub enum TransferError{
+    #[error("file not found: {0:?}")]
     FileNotFound(PathBuf),
+    #[error("permission denied: {0:?}")]
     PermissionDenied(PathBuf),
+    #[error("io error: {0}")]
     Io(#[from] io::Error),
 }
 
@@ -24,8 +28,8 @@ impl TransferProgress{
         }
     }
 
-    pub fn update(&mutself, bytes_sent:usize) {
-        Self.bytes_transferred += bytes_sent;
+    pub fn update(&mut self, bytes_sent:usize) {
+        self.bytes_transferred += bytes_sent;
     }
 
     pub fn percentage(&self) -> f64 {
@@ -65,7 +69,7 @@ impl TransferManager{
         Ok(progress)
     }
 
-  pub fn download_file(src:&Path , dest:&Path) -> Result<() , TransferError> {
+    pub fn download_file(src:&Path , dest:&Path) -> Result<(), TransferError> {
    
     if !src.exists(){
         return Err(TransferError::FileNotFound(src.to_path_buf()));
@@ -85,7 +89,7 @@ impl TransferManager{
     Ok(())
   }
 
-  pub fn list_files(dir: &Path) -> Result<Vec<String>, TransferError> {
+    pub fn list_files(dir: &Path) -> Result<Vec<String>, TransferError> {
     if !dir.exists() {
         return Err(TransferError::FileNotFound(dir.to_path_buf()));
     }

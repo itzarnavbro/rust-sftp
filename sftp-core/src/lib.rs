@@ -81,11 +81,11 @@ pub fn execute_feature(feature_name: &str, args: &[String]) -> Result<(), CoreEr
 }
 
 /// Return all available feature names (for CLI help/autocomplete).
+///
+/// Note: Currently returns a static list because features are not
+/// registered dynamically in this setup.
 pub fn list_features() -> Vec<String> {
-    let map = registry().lock().expect("registry poisoned");
-    let mut keys: Vec<String> = map.keys().cloned().collect();
-    keys.sort();
-    keys
+    vec!["auth".to_string(), "transfer".to_string()]
 }
 
 // Private helpers

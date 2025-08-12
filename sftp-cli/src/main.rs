@@ -1,14 +1,11 @@
-//! sftp-cli: binary crate that registers features and dispatches commands.
+//! sftp-cli: binary crate that dispatches commands to feature crates.
 use std::env;
 
-use sftp_core::{list_features, process_input, CoreError};
+use sftp_core::{list_features, CoreError};
+use std::path::Path;
 
-/// Entry point: registers features, handles flags and dispatches to core.
+/// Entry point: handles flags and dispatches to feature crates.
 fn main() {
-	// Register features at startup
-	sftp_auth::register();
-	sftp_transfer::register();
-
 	// Gather raw args once for flag handling
 	let raw_args: Vec<String> = env::args().skip(1).collect();
 
@@ -33,35 +30,17 @@ fn main() {
 		return;
 	}
 
-	// Build a raw command line preserving spaces via quoting when needed
-	let mut cmd = String::new();
-	cmd.push_str(&feature);
-	for a in &args {
-		cmd.push(' ');
-		if a.chars().any(|c| c.is_whitespace()) {
-			let escaped = a.replace('"', "\\\"");
-			cmd.push('"');
-			cmd.push_str(&escaped);
-			cmd.push('"');
-		} else {
-			cmd.push_str(a);
+	// Dispatch directly to feature crates (keeping their APIs unchanged)
+	let code = match feature.as_str() {
+		"auth" => handle_auth(&args, verbose),
+		"transfer" => handle_transfer(&args, verbose),
+		other => {
+			eprintln!("Unknown feature: {}", other);
+			print_help();
+			1
 		}
-	}
-
-	if verbose {
-		eprintln!("[verbose] dispatch: {}", cmd);
-	}
-
-	match process_input(&cmd) {
-		Ok(out) => {
-			println!("{}", out.message);
-			std::process::exit(out.code);
-		}
-		Err(err) => {
-			print_error(&err);
-			std::process::exit(1);
-		}
-	}
+	};
+	std::process::exit(code);
 }
 
 // Private helpers
@@ -89,7 +68,7 @@ fn parse_args() -> (String, Vec<String>) {
 fn print_help() {
 	let features = list_features();
 	println!(
-		"Usage:\n  {} [FLAGS] <feature> [args...]\n\nFeatures:\n  {}\n\nFlags:\n  -h, --help       Show help\n  -V, --version    Show version\n  -v, --verbose    Enable debug output\n\nExamples:\n  {bin} auth <user>\n  {bin} transfer <file>\n",
+		"Usage:\n  {} [FLAGS] <feature> [args...]\n\nFeatures:\n  {}\n\nFlags:\n  -h, --help       Show help\n  -V, --version    Show version\n  -v, --verbose    Enable debug output\n\nAuth examples:\n  {bin} auth load_keys <authorized_keys_path>\n\nTransfer examples:\n  {bin} transfer upload <src> <dest>\n  {bin} transfer download <src> <dest>\n  {bin} transfer ls <dir>\n",
 		env!("CARGO_PKG_NAME"),
 		if features.is_empty() {
 			"(none)".to_string()
@@ -101,7 +80,100 @@ fn print_help() {
 }
 
 /// Print a formatted error and a hint to use `--help`.
-fn print_error(err: &CoreError) {
+fn print_error(err: &str) {
 	eprintln!("Error: {}", err);
 	eprintln!("Run with --help to see usage.");
+}
+
+// Feature handlers (no changes to feature crate APIs)
+
+fn handle_auth(args: &[String], verbose: bool) -> i32 {
+	if args.is_empty() {
+		print_help();
+		return 1;
+	}
+	match args[0].as_str() {
+		"load_keys" => {
+			if args.len() != 2 {
+				print_error("auth load_keys requires <authorized_keys_path>");
+				return 2;
+			}
+			let path = std::path::Path::new(&args[1]);
+			if verbose {
+				eprintln!("[verbose][auth] load_keys {:?}", path);
+			}
+			match sftp_auth::load_keys_from_file(path) {
+				Ok(users) => {
+					println!("Loaded {} users", users.len());
+					0
+				}
+				Err(_e) => {
+					// Avoid forcing feature crate error types; print generic error
+					print_error("failed to load keys");
+					1
+				}
+			}
+		}
+		other => {
+			print_error(&format!("unknown auth subcommand: {}", other));
+			1
+		}
+	}
+}
+
+fn handle_transfer(args: &[String], verbose: bool) -> i32 {
+	if args.is_empty() {
+		print_help();
+		return 1;
+	}
+	match args[0].as_str() {
+		"upload" => {
+			if args.len() != 3 {
+				print_error("transfer upload requires <src> <dest>");
+				return 2;
+			}
+			let src = Path::new(&args[1]);
+			let dest = Path::new(&args[2]);
+			if verbose { eprintln!("[verbose][transfer] upload {:?} -> {:?}", src, dest); }
+			match sftp_transfer::TransferManager::upload_file(src, dest) {
+				Ok(_progress) => {
+					println!("Upload completed");
+					0
+				}
+				Err(_e) => {
+					print_error("upload failed");
+					1
+				}
+			}
+		}
+		"download" => {
+			if args.len() != 3 {
+				print_error("transfer download requires <src> <dest>");
+				return 2;
+			}
+			let src = Path::new(&args[1]);
+			let dest = Path::new(&args[2]);
+			if verbose { eprintln!("[verbose][transfer] download {:?} -> {:?}", src, dest); }
+			match sftp_transfer::TransferManager::download_file(src, dest) {
+				Ok(()) => { println!("Download completed"); 0 }
+				Err(_e) => { print_error("download failed"); 1 }
+			}
+		}
+		"ls" => {
+			if args.len() != 2 {
+				print_error("transfer ls requires <dir>");
+				return 2;
+			}
+			let dir = Path::new(&args[1]);
+			if verbose { eprintln!("[verbose][transfer] ls {:?}", dir); }
+			match sftp_transfer::TransferManager::list_files(dir) {
+				Ok(files) => { for f in files { println!("{}", f); } 0 }
+				Err(_e) => { print_error("ls failed"); 1 }
+			}
+		}
+		other => {
+			print_error(&format!("unknown transfer subcommand: {}", other));
+			1
+		}
+	}
 }

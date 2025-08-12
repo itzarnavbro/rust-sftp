@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 sftp-core = { path = "../sftp-core" }
+thiserror = "1.0"

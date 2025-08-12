@@ -8,9 +8,18 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum AuthError {
+    #[error("invalid key")]
     InvalidKey,
+    #[error("invalid password")]
     InvalidPassword,
+    #[error("user not found")]
     UserNotFound,
+    #[error("io error: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("key parse error: {0}")]
+    Key(#[from] sshkeys::Error),
+    #[error("parse error: {0}")]
+    Parse(String),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -49,7 +58,7 @@ pub fn load_keys_from_file(path: &Path) -> Result<Vec<User>, AuthError> {
             let parts: Vec<&str> = line.trim().split_whitespace().collect();
     
             if parts.len() < 2 {
-                return Err(AuthError::Parse(format!("Invalid key line: {}", line).into()));
+                return Err(AuthError::Parse(format!("Invalid key line: {}", line)));
             }
     
             let username = parts[0].to_string();
@@ -60,8 +69,8 @@ pub fn load_keys_from_file(path: &Path) -> Result<Vec<User>, AuthError> {
     
            
             users.push(User {
-                username,
-                public_key: key_str,
+                Username: username,
+                Public_key: key_str,
             });
         }
     
