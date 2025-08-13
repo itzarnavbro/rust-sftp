@@ -81,6 +81,57 @@ List files in a directory:
 cargo run -p sftp-cli -- transfer ls C:\path\to\dir
 ```
 
+## Remote SFTP over SSH (new)
+
+Use the built-in ssh2 backend via the `sftp` feature in the CLI.
+
+Examples (Windows cmd):
+
+```cmd
+# List a remote directory (strict host key check)
+sftp-cli.exe sftp ls --host 192.168.1.10 --port 22 --user alice --key C:\id_ed25519 --known-hosts C:\Users\you\.ssh\known_hosts --strict /home/alice
+
+# First-time trusted LAN (auto-add host key)
+sftp-cli.exe sftp upload --host 192.168.1.10 --user alice --key C:\id_ed25519 --accept-new C:\src.txt /home/alice/dest.txt
+
+# Password auth
+sftp-cli.exe sftp download --host 192.168.1.10 --user alice --password secret /home/alice/src.txt C:\dest.txt
+```
+
+Notes:
+- For non-22 ports, known_hosts uses OpenSSH format: `[host]:port`.
+- Prefer key-based auth. Use `--key-pass` if your key is encrypted.
+- Security: Use `--strict` with a curated known_hosts in production.
+
+### Windows build note (OpenSSL)
+
+If building locally, ensure Strawberry Perl is used for vendored OpenSSL builds:
+
+```cmd
+set "PATH=C:\Strawberry\perl\bin;%PATH%"
+set PERL=C:\Strawberry\perl\bin\perl.exe
+cargo build --workspace
+```
+
+## Testing
+
+- Unit tests run via:
+
+```cmd
+cargo test --workspace --all-features -- --nocapture
+```
+
+- Optional integration smoke test for remote SFTP (requires an SSH server): set environment variables before running tests (only needed for sftp-net crate tests):
+
+```cmd
+set SFTP_TEST_HOST=192.168.1.10
+set SFTP_TEST_PORT=22
+set SFTP_TEST_USER=alice
+set SFTP_TEST_PASSWORD=secret   # or set SFTP_TEST_KEY=C:\id_ed25519 and optionally SFTP_TEST_KEY_PASS=...
+set SFTP_TEST_KNOWN_HOSTS=C:\Users\you\.ssh\known_hosts
+cargo test -p sftp-net -- --nocapture
+```
+
 ## Design notes
 
 - Direct dispatch: The CLI calls feature crates directly to keep your friend’s code unchanged.
