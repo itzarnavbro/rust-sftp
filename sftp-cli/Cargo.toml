@@ -7,3 +7,4 @@ edition = "2024"
 sftp-core = { path = "../sftp-core" }
 sftp-auth = { path = "../sftp-auth" }
 sftp-transfer = { path = "../sftp-transfer" }
+sftp-net = { path = "../sftp-net" }

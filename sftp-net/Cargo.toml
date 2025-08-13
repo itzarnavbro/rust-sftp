@@ -1,0 +1,9 @@
+[package]
+name = "sftp-net"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+ssh2 = "0.9"
+openssl-sys = { version = "0.9", features = ["vendored"] }
+thiserror = "1.0"

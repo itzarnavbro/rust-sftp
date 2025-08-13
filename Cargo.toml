@@ -3,6 +3,7 @@ members = [
 	"sftp-core",
 	"sftp-auth",
 	"sftp-transfer",
+	"sftp-net",
 	"sftp-cli",
 ]
 resolver = "3"

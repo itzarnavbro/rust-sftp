@@ -119,18 +119,12 @@ fn tokenize(input: &str) -> Vec<String> {
     while let Some(c) = chars.next() {
         match c {
             '\'' if !in_double => {
-                if in_single {
-                    in_single = false;
-                } else {
-                    in_single = true;
-                }
+                // Toggle single-quote state: agar already inside hai to bahar, warna andar
+                in_single = !in_single;
             }
             '"' if !in_single => {
-                if in_double {
-                    in_double = false;
-                } else {
-                    in_double = true;
-                }
+                // Toggle double-quote state
+                in_double = !in_double;
             }
             '\\' => {
                 if let Some(next) = chars.next() {

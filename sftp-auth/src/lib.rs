@@ -48,6 +48,10 @@ impl AuthManager {
     }
 }
 
+impl Default for AuthManager {
+    fn default() -> Self { Self::new() }
+}
+
 
 pub fn load_keys_from_file(path: &Path) -> Result<Vec<User>, AuthError> {
 
@@ -57,7 +61,8 @@ pub fn load_keys_from_file(path: &Path) -> Result<Vec<User>, AuthError> {
     
         
         for line in file_content.lines() {
-            let parts: Vec<&str> = line.trim().split_whitespace().collect();
+            // trim() + split_whitespace duplicate work; split_whitespace is enough
+            let parts: Vec<&str> = line.split_whitespace().collect();
     
             if parts.len() < 2 {
                 return Err(AuthError::Parse(format!("Invalid key line: {}", line)));
