@@ -32,6 +32,8 @@ jobs:
           New-Item -ItemType Directory -Force -Path $dist | Out-Null
           Copy-Item target/release/sftp-cli.exe "$dist/"
           if (Test-Path README.md) { Copy-Item README.md "$dist/" }
+          if (Test-Path scripts) { Copy-Item -Recurse scripts "$dist/" }
+          if (Test-Path .vscode) { Copy-Item -Recurse .vscode "$dist/" }
           Compress-Archive -Path "$dist/*" -DestinationPath "dist/sftp-cli-windows-x86_64.zip" -Force
       - name: Package (macOS)
         if: runner.os == 'macOS'
@@ -39,6 +41,8 @@ jobs:
           mkdir -p dist/sftp-cli-macos-universal
           cp target/release/sftp-cli dist/sftp-cli-macos-universal/
           [ -f README.md ] && cp README.md dist/sftp-cli-macos-universal/
+          [ -d scripts ] && cp -R scripts dist/sftp-cli-macos-universal/
+          [ -d .vscode ] && cp -R .vscode dist/sftp-cli-macos-universal/
           cd dist && zip -r sftp-cli-macos-universal.zip sftp-cli-macos-universal
       - name: Upload artifact
         uses: actions/upload-artifact@v4

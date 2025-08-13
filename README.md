@@ -132,6 +132,18 @@ set SFTP_TEST_KNOWN_HOSTS=C:\Users\you\.ssh\known_hosts
 cargo test -p sftp-net -- --nocapture
 ```
 
+### Automation helpers (included in release zips)
+
+- scripts/macos/setup_sshd.sh: Enable Remote Login (sshd) and prepare `~/.ssh/authorized_keys` on mac.
+- scripts/windows/test_sftp.ps1: One-shot Windows smoke test to ls/upload/download against the mac.
+- .vscode/tasks.json: VS Code tasks to run the smoke test (Windows).
+
+Tip (Windows cmd):
+
+```cmd
+powershell -ExecutionPolicy Bypass -File scripts\windows\test_sftp.ps1 -Host 192.168.1.10 -User alice
+```
+
 ## Design notes
 
 - Direct dispatch: The CLI calls feature crates directly to keep your friend’s code unchanged.
